@@ -165,6 +165,11 @@ public class ContentSearchUtil {
   logger.info(requestContext,"Url string is "+urlString);
     BaseRequest request =
             Unirest.post(urlString).headers(getUpdatedCourseHeaders(headers)).body(queryRequestBody);
+            try {
+              logger.info(requestContext,request.asJson().toString());
+            } catch (UnirestException e) {
+              throw new RuntimeException(e);
+            }
     try {
       HttpResponse<JsonNode> response = RestUtil.execute(request);
       if (RestUtil.isSuccessful(response)) {
