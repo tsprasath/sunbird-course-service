@@ -166,6 +166,7 @@ class CourseEnrolmentActor @Inject()(@Named("course-batch-notification-actor") c
         }
     }
     def getCourseList(request: Request): Response = {
+        logger.info(request.getRequestContext,"Inside the getCourseList")
         val activePIAACourseEnrolments: java.util.List[java.util.Map[String, AnyRef]] = addCourseListDetails(request)
         val courseMap = {
             if (CollectionUtils.isNotEmpty(activePIAACourseEnrolments)) {
@@ -194,6 +195,7 @@ class CourseEnrolmentActor @Inject()(@Named("course-batch-notification-actor") c
                                             x.put(JsonKey.FIRST_NAME, activeUserDetails.get().get(JsonKey.FIRST_NAME))
                                             x.put(JsonKey.LAST_NAME, activeUserDetails.get().get(JsonKey.LAST_NAME))
                                             x.put(JsonKey.ASSESSMENT_NAME, courseMap.get(courseId).get(JsonKey.NAME))
+                                            x.put(JsonKey.CREATED_BY, courseMap.get(courseId).get(JsonKey.CREATED_BY))
                                             courseUserMap.put(userId, x)
                                         }
                                     })
@@ -212,6 +214,7 @@ class CourseEnrolmentActor @Inject()(@Named("course-batch-notification-actor") c
         resp
     }
     def evaluationList(request: Request): Unit = {
+        logger.info(request.getRequestContext,"Inside the evaluationList")
         try {
             val response = getCourseList(request)
             sender().tell(response, self)
@@ -259,9 +262,12 @@ class CourseEnrolmentActor @Inject()(@Named("course-batch-notification-actor") c
     }
 
     def addCourseListDetails(request: Request): java.util.List[java.util.Map[String, AnyRef]] = {
+        logger.info(request.getRequestContext,"Inside addCourseListDetails")
         val requestBody: String = prepareCourseListSearchRequest(request)
+        logger.info(request.getRequestContext,"Request body")
         val searchResult: java.util.Map[String, AnyRef] = ContentSearchUtil.searchContentCompositeSync(request.getRequestContext, request.getContext.getOrDefault(JsonKey.URL_QUERY_STRING, "").asInstanceOf[String], requestBody, request.getContext.get(JsonKey.HEADER).asInstanceOf[java.util.Map[String, String]])
         val courseList: java.util.List[java.util.Map[String, AnyRef]] = searchResult.getOrDefault(JsonKey.CONTENTS, new java.util.ArrayList[java.util.Map[String, AnyRef]]()).asInstanceOf[java.util.List[java.util.Map[String, AnyRef]]]
+        logger.info(request.getRequestContext,"Course List"+courseList)
         courseList
     }
     def prepareSearchRequest(courseIds: java.util.List[String], request: Request): String = {
@@ -282,6 +288,7 @@ class CourseEnrolmentActor @Inject()(@Named("course-batch-notification-actor") c
     }
 
     def prepareCourseListSearchRequest(request: Request): String = {
+        logger.info(request.getRequestContext,"Inside the prepareCourseListSearchRequest")
         val filters: java.util.Map[String, AnyRef] = new java.util.HashMap[String, AnyRef]() {
             {
                 put(JsonKey.PRIMARYCATEGORY, request.getRequest.getOrDefault(JsonKey.PRIMARYCATEGORY, "PIAA Assessment"))
